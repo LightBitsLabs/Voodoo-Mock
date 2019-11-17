@@ -4,6 +4,8 @@ else
   Q = @
 endif
 
+.NOTPARALLEL:
+
 clean_unittest:
 	rm -fr build_unittest coverage
 
