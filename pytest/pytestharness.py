@@ -120,7 +120,7 @@ class ParallelRun:
 
     def _testerThread( self ):
         while True:
-            if self._quitEvent.isSet():
+            if self._quitEvent.is_set():
                 return
             self._lock.acquire()
             try:
@@ -145,10 +145,10 @@ class ParallelRun:
 
             success = popen.wait()
             f = open(output_file, "r")
-            testCount = len( [ l for l in f.readline() if "TEST '" in l ] )
+            testCount = len( [ l for l in f if "TEST '" in l ] )
             took = time.time() - before
             f.seek(0)
-            for l in f.readline():
+            for l in f:
                 if "TEST '" in l:
                     testname = re.search( r"TEST '(.*)'", l ).group( 1 )
                     suiteRelative = os.path.relpath( suite )
@@ -162,7 +162,7 @@ class ParallelRun:
                     print("")
                     print(("Suite '%s' failed:" % suite))
                     f.seek(0)
-                    for l in f.readline():
+                    for l in f:
                         print(l)
                     self._success = False
                 finally:
