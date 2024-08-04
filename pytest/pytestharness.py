@@ -19,7 +19,7 @@ parser.add_argument( "--coverageFlags", default = "--branch" )
 parser.add_argument( "--verbose", action = "store_true" )
 parser.add_argument( "--jobs", type = int, default = 4 )
 parser.add_argument( "--cacheFile", default = "testharnesscache.tmp" )
-parser.add_argument( "--reportFile", default = "testharnessreport.json" )
+parser.add_argument( "--reportFile", required=True, default = "testharnessreport.json" )
 args = parser.parse_args()
 
 if args.verbose:
@@ -31,7 +31,7 @@ def isPythonTestSuite( suite ):
 def isCppTestSuite( suite ):
     return suite.endswith( ".bin" )
 
-def popenSuite( suite ):
+def popenSuite( suite, output_file ):
     if isPythonTestSuite( suite ):
         if args.coverage:
             coverageFlags = args.coverageFlags.split(" ")
@@ -48,7 +48,7 @@ def popenSuite( suite ):
                                     encoding='utf-8')
     elif isCppTestSuite( suite ):
         return subprocess.Popen( [ suite ],
-                                stdout = subprocess.PIPE,
+                                stdout = output_file,
                                 stderr = subprocess.STDOUT,
                                 encoding='utf-8',
                                 env = dict( os.environ,
@@ -83,13 +83,14 @@ for suite in args.suites:
 print("Running %d fresh suites (total %d)" % ( len( needToRunSuites ), len( args.suites ) ))
 
 class ParallelRun:
-    def __init__( self, suites ):
+    def __init__( self, suites, output_dir ):
         self._suites = suites
         self._lock = threading.Lock()
         self._quitEvent = threading.Event()
         self._success = True
         self._cppTests = 0
         self._pythonTests = 0
+        self._output_dir = output_dir
 
     def go( self ):
         self._startThreads()
@@ -138,45 +139,50 @@ class ParallelRun:
             print("Running %s" % suite)
             sys.stdout.flush()
         before = time.time()
-        popen = popenSuite( suite )
-        all = popen.stdout.readlines()
-        if args.verbose:
-            print("".join( all ))
-            sys.stdout.flush()
-        testCount = len( [ l for l in all if "TEST '" in l ] )
-        popen.stdout.close()
-        success = popen.wait()
-        took = time.time() - before
-        for l in all:
-            if "TEST '" in l:
-                testname = re.search( r"TEST '(.*)'", l ).group( 1 )
-                suiteRelative = os.path.relpath( suite )
-                report.append( dict( suite = suiteRelative,
-                                    name = testname,
-                                    passed = success == 0,
-                                    timeTook = took / testCount ) )
-        if success != 0:
-            self._lock.acquire()
-            try:
-                print("")
-                print(("Suite '%s' failed:" % suite))
-                print(("".join( all )))
-                self._success = False
-            finally:
-                self._lock.release()
-            self._quitEvent.set()
-        else:
-            self._lock.acquire()
-            try:
-                lastRun[ suite ] = ( lastModifiedTime( suite ), testCount )
-                if isPythonTestSuite( suite ):
-                    self._pythonTests += testCount
-                else:
-                    self._cppTests += testCount
-            finally:
-                self._lock.release()
+        output_file = suite + ".log"
+        with open( output_file, "w" ) as outf:
+            popen = popenSuite( suite, outf )
 
-result = ParallelRun( needToRunSuites ).go()
+            success = popen.wait()
+            f = open(output_file, "r")
+            testCount = len( [ l for l in f.readline() if "TEST '" in l ] )
+            took = time.time() - before
+            f.seek(0)
+            for l in f.readline():
+                if "TEST '" in l:
+                    testname = re.search( r"TEST '(.*)'", l ).group( 1 )
+                    suiteRelative = os.path.relpath( suite )
+                    report.append( dict( suite = suiteRelative,
+                                        name = testname,
+                                        passed = success == 0,
+                                        timeTook = took / testCount ) )
+            if success != 0:
+                self._lock.acquire()
+                try:
+                    print("")
+                    print(("Suite '%s' failed:" % suite))
+                    f.seek(0)
+                    for l in f.readline():
+                        print(l)
+                    self._success = False
+                finally:
+                    self._lock.release()
+                self._quitEvent.set()
+            else:
+                self._lock.acquire()
+                try:
+                    lastRun[ suite ] = ( lastModifiedTime( suite ), testCount )
+                    if isPythonTestSuite( suite ):
+                        self._pythonTests += testCount
+                    else:
+                        self._cppTests += testCount
+                finally:
+                    self._lock.release()
+
+output_dir = os.path.dirname( args.reportFile )
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+result = ParallelRun( needToRunSuites, output_dir ).go()
 if os.path.dirname( args.cacheFile ) != '' and not os.path.isdir( os.path.dirname( args.cacheFile ) ):
     os.makedirs( os.path.dirname( args.cacheFile ) )
 with open( args.cacheFile, "wb" ) as f:
