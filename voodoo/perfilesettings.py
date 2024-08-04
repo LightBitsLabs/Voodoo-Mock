@@ -13,10 +13,10 @@ class PerFileSettings:
         if relevant == "":
             return
         try:
-            exec relevant in dict(), self.__dict__
+            exec(relevant, dict(), self.__dict__)
         except:
             traceback.print_exc()
-            print "Python syntax error in: '%s'" % relevant
+            print("Python syntax error in: '%s'" % relevant)
 
     def filterInherits( self, inherits ):
         return [ inherit for inherit in inherits if inherit not in self.NO_INHERITS ]

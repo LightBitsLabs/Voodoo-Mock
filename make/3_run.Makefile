@@ -8,4 +8,4 @@ PYTEST_TEST_FILES = $(shell find $(PYTEST_FIND_PATTERN) $(__REMOVE_DOT_SLASH_PRE
 runAllTests:
 	$(Q)echo "Running all tests"
 	$(Q)rm -fr .coverage*
-	$(Q)$(PYTHON2_EXECUTABLE) $(VOODOO_ROOT_DIR)/pytest/pytestharness.py $(PYTESTHARNESS_FLAGS) $(CXXTEST_BINARIES) $(PYTEST_TEST_FILES)
+	$(Q)$(PYTHON_EXECUTABLE) $(VOODOO_ROOT_DIR)/pytest/pytestharness.py $(PYTESTHARNESS_FLAGS) $(CXXTEST_BINARIES) $(PYTEST_TEST_FILES)

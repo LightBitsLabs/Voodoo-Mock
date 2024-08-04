@@ -10,7 +10,7 @@ import subprocess
 def getCodeLines( filename ):
     #removes comments
     preprocessed = subprocess.check_output( [ 'cpp', '-fpreprocessed', filename ] )
-    return preprocessed.split( '\n' )
+    return preprocessed.decode("utf-8").split( '\n' )
 
 def findTestClass( lines ):
     index = 0
