@@ -1,4 +1,4 @@
-PYTHON2_EXECUTABLE ?= python2.7
+PYTHON_EXECUTABLE ?= python3
 UNITTEST_BUILD_DIRECTORY ?= build_unittest
 CXXTEST_FIND_ROOT ?=
 CXXTEST_FIND_PATTERN ?= $(CXXTEST_FIND_ROOT) -name 'test_*.h' -or -name 'Test_*.h'

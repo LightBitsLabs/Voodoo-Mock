@@ -4,7 +4,7 @@ from perfilesettings import PerFileSettings
 import re
 
 def _readLinesOfFile( fileName ):
-	f = file( fileName )
+	f = open( fileName )
 	try:
 		return f.readlines()
 	finally:

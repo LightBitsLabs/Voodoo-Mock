@@ -10,7 +10,7 @@ function isCxxTest {
 }
 
 if isPython $SUITE; then
-	$PYTHON2_EXECUTABLE $VOODOO_ROOT_DIR/pytest/pytestrunner.py --verbose $SUITE
+	$PYTHON_EXECUTABLE $VOODOO_ROOT_DIR/pytest/pytestrunner.py --verbose $SUITE
 else
     if [ ! isCxxTest ]; then
         echo "$SUITE was not recognized as niether python test suite or CxxTest suite files"

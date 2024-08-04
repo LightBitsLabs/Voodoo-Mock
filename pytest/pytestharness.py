@@ -1,10 +1,8 @@
 import sys
 import subprocess
 import os.path
-import imp
 import re
 import stat
-import getopt
 import threading
 import pickle
 import time
@@ -40,16 +38,19 @@ def popenSuite( suite ):
             return subprocess.Popen( [ 'coverage', 'run', '--append' ] + coverageFlags +
                                     [ PYTESTRUNNER, "--verbose", suite ],
                                     stdout = subprocess.PIPE,
-                                    stderr = subprocess.STDOUT )
+                                    stderr = subprocess.STDOUT,
+                                    encoding='utf-8')
         else:
             return subprocess.Popen( [ 'python', PYTESTRUNNER,
                                             "--verbose", suite ],
                                     stdout = subprocess.PIPE,
-                                    stderr = subprocess.STDOUT )
+                                    stderr = subprocess.STDOUT,
+                                    encoding='utf-8')
     elif isCppTestSuite( suite ):
         return subprocess.Popen( [ suite ],
                                 stdout = subprocess.PIPE,
                                 stderr = subprocess.STDOUT,
+                                encoding='utf-8',
                                 env = dict( os.environ,
                                     GCOV_PREFIX_STRIP = "100",
                                     GCOV_PREFIX = os.path.dirname( suite ) ) )
@@ -79,7 +80,7 @@ for suite in args.suites:
     else:
         oldCppTests += lastRun[ suite ][ 1 ]
 
-print "Running %d fresh suites (total %d)" % ( len( needToRunSuites ), len( args.suites ) )
+print("Running %d fresh suites (total %d)" % ( len( needToRunSuites ), len( args.suites ) ))
 
 class ParallelRun:
     def __init__( self, suites ):
@@ -94,16 +95,16 @@ class ParallelRun:
         self._startThreads()
         self._waitForThreadsToComplete()
         if self._success:
-            print ""
-            print "OK!"
-            print "CPP tests: %d (%d skipped)" % (    self._cppTests,
-                                                    oldCppTests )
-            print "Python tests: %d" % self._pythonTests
-            print "Total: %d tests" % (
-                    self._cppTests + oldCppTests + self._pythonTests )
+            print("")
+            print("OK!")
+            print(("CPP tests: %d (%d skipped)" % (    self._cppTests,
+                                                    oldCppTests )))
+            print(("Python tests: %d" % self._pythonTests))
+            print(("Total: %d tests" % (
+                    self._cppTests + oldCppTests + self._pythonTests )))
             return 0
         else:
-            print "FAILED!"
+            print("FAILED!")
             return 1
 
     def _startThreads( self ):
@@ -134,13 +135,13 @@ class ParallelRun:
 
     def _runSuite( self, suite ):
         if args.verbose:
-            print "Running %s" % suite
+            print("Running %s" % suite)
             sys.stdout.flush()
         before = time.time()
         popen = popenSuite( suite )
         all = popen.stdout.readlines()
         if args.verbose:
-            print "".join( all )
+            print("".join( all ))
             sys.stdout.flush()
         testCount = len( [ l for l in all if "TEST '" in l ] )
         popen.stdout.close()
@@ -157,9 +158,9 @@ class ParallelRun:
         if success != 0:
             self._lock.acquire()
             try:
-                print ""
-                print "Suite '%s' failed:" % suite
-                print "".join( all )
+                print("")
+                print(("Suite '%s' failed:" % suite))
+                print(("".join( all )))
                 self._success = False
             finally:
                 self._lock.release()

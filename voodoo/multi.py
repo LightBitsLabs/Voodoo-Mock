@@ -86,7 +86,7 @@ def voodooOneFile( fullName, inputPath, fileList ):
                                     trace = False,
                                     preIncludes = args.preInclude )
         state = "V"
-    except Exception, e:
+    except Exception as e:
         if str(e).find( "all argume" ) != -1:
             raise
         inputLines = voodoo._readLinesOfFile( fullName )
@@ -99,7 +99,7 @@ def voodooOneFile( fullName, inputPath, fileList ):
         output += "*/\n"
         output += "\n"
         state = "I"
-    f = file( fullOutput, "w" )
+    f = open( fullOutput, "w" )
     f.write( output )
     f.flush()
     f.close()
