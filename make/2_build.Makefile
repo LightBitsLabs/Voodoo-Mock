@@ -9,7 +9,7 @@ ifneq ($(OS),Windows_NT)
 UNITTEST_LIBS ?= -ldl
 endif
 
-UNITTEST_CXXFLAGS += -std=gnu++14 -Werror -Wall -ggdb -DDEBUG -DUNITTEST --coverage -Wno-terminate -fsanitize=address
+UNITTEST_CXXFLAGS += -std=gnu++20 -Werror -Wall -ggdb -DDEBUG -DUNITTEST --coverage -Wno-terminate -fsanitize=address
 UNITTEST_LDFLAGS += --coverage -fsanitize=address
 __UNITTEST_INCLUDES = -I$(VOODOO_MIRROR_TREE) $(UNITTEST_INCLUDES)
 #NOTE: VOODOO_MIRROR_TREE must come first in include order, or interception magia will not work
